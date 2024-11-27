@@ -1,5 +1,5 @@
 from sprite_object import *
-from npc import *
+from enemy import *
 from random import choices, randrange
 
 
