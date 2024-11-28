@@ -26,8 +26,8 @@ class Game:
         self.new_game()
 
     def new_game(self):
-        self.map = Map(self)
         self.player = Player(self)
+        self.map = Map(self)
         self.object_renderer = ObjectRenderer(self)
         self.raycasting = RayCasting(self)
         self.object_handler = ObjectHandler(self)
@@ -35,6 +35,7 @@ class Game:
         self.sound = Sound(self)
         self.pathfinding = PathFinding(self)
         pg.mixer.music.play(-1)
+        self.enemies_positions = self.object_handler.npc_positions
 
     def update(self):
         self.player.update()
@@ -44,6 +45,7 @@ class Game:
         pg.display.flip()
         self.delta_time = self.clock.tick(FPS)
         pg.display.set_caption(f'{self.clock.get_fps() :.1f}')
+        self.enemies_positions = self.object_handler.npc_positions
 
     def draw(self):
         # self.screen.fill('black')
@@ -80,24 +82,31 @@ class Game:
         """
         minimap_scale = 5  # Échelle de la mini-map (ajuster selon les préférences) et taille d'une case sur la mini-map
         tile_size = minimap_scale * 2 # Facteur de conversion pour correspondre à l'échelle réelle, chaque tuile de la carte sera dessinée avec cette taille
-        for y, row in enumerate(self.map.world_map):
-            for x, value in enumerate(row):
-                if value == 1:  # Si c'est un mur
-                    # On dessine un rectangle pour représenter un mur
-                    pg.draw.rect(self.screen, (255, 255, 255), 
-                                (x * tile_size, y * tile_size, tile_size, tile_size))
+        # for y, row in enumerate(self.map.world_map):
+        #     for x, value in enumerate(row):
+        #         if value == 1:  # Si c'est un mur
+        #             # On dessine un rectangle pour représenter un mur
+        #             pg.draw.rect(self.screen, (255, 255, 255), 
+        #                         (x * tile_size, y * tile_size, tile_size, tile_size))
         
         # Dessiner la position du joueur 
         player_x = int(self.player.pos[0] * tile_size) # Conversion selon la même échelle
         player_y = int(self.player.pos[1] * tile_size)
         pg.draw.circle(self.screen, (0, 255, 0), (player_x, player_y), 5)  # Position du joueur
 
+        for enemy in self.enemies_positions:
+            enemy_x = int(enemy[0] * tile_size)
+            enemy_y = int(enemy[1] * tile_size)
+            pg.draw.circle(self.screen, (255, 0, 0), (enemy_x, enemy_y), 5)  # Position de l'ennemi
+
+        
         # Surface temporaire pour le cône de vue
         cone_surface = pg.Surface((self.screen.get_width(), self.screen.get_height()), pg.SRCALPHA)
 
         # Dessiner le cône de vue (semi-transparent)
-        view_distance = 50  # Longueur du cône
+        view_distance = 30  # Longueur du cône
         half_fov = math.radians(30)  # Moitié du champ de vision (en radians, ici 60° total)
+        
 
         # Calcul des extrémités du cône
         angle_left = self.player.angle - half_fov
@@ -121,10 +130,11 @@ class Game:
         
 
 
+
     def run(self):
         while True:
             self.check_events()
-            self.draw_minimap()
+            # self.draw_minimap()
             self.update()
             self.draw()
 
